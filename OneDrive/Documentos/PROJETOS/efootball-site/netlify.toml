@@ -1,5 +1,5 @@
 [build]
-  publish = "."
+  publish = "OneDrive/Documentos/PROJETOS/efootball-site"
 
 [[redirects]]
   from = "/*"
