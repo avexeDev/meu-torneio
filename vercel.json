@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "app-supabase.js": {
+      "runtime": "@vercel/static"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
