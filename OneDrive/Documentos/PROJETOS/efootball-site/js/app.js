@@ -346,14 +346,14 @@ class TournamentManager {
 
   updateClubSelects() {
     const clubs = this.getUserData("clubs");
-    const selects = ["player-club", "coach-club", "club-filter", "home-team", "away-team"];
+    const selects = ["player-club", "coach-club", "club-filter", "coaches-club-filter", "home-team", "away-team"];
 
     selects.forEach((selectId) => {
       const select = document.getElementById(selectId);
       if (select) {
         const currentValue = select.value;
         const baseOptions =
-          selectId === "club-filter"
+          selectId === "club-filter" || selectId === "coaches-club-filter"
             ? '<option value="">Todos os clubes</option>'
             : '<option value="">Selecione o clube</option>';
 
@@ -455,7 +455,7 @@ class TournamentManager {
   // Treinadores
   loadCoaches() {
     let coaches = this.getUserData("coaches");
-    const clubFilter = document.getElementById("club-filter").value;
+    const clubFilter = document.getElementById("coaches-club-filter").value;
     const searchTerm = document.getElementById("coaches-search").value.toLowerCase();
 
     if (clubFilter) {
@@ -1124,6 +1124,10 @@ class TournamentManager {
     // Filtros
     document.getElementById("club-filter").addEventListener("change", () => {
       this.loadPlayers();
+    });
+
+    document.getElementById("coaches-club-filter").addEventListener("change", () => {
+      this.loadCoaches();
     });
 
     // Filtros de busca
