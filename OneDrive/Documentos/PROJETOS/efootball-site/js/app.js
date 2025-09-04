@@ -1142,20 +1142,6 @@ class TournamentManager {
     document.getElementById("profile-photo").src = player.photo || 'https://via.placeholder.com/120';
     document.getElementById("profile-name").textContent = player.name;
     document.getElementById("profile-position").textContent = player.position;
-    
-    // Bandeira no cabeçalho
-    const nationalityHeaderFlag = document.getElementById("profile-nationality-flag-header");
-    const nationalityHeaderText = document.getElementById("profile-nationality-text-header");
-    const nationalityHeader = document.getElementById("profile-nationality-header");
-    
-    if (player.nationality) {
-      nationalityHeaderFlag.src = this.getCountryFlag(player.nationality);
-      nationalityHeaderText.textContent = player.nationality;
-      nationalityHeader.style.display = 'flex';
-    } else {
-      nationalityHeader.style.display = 'none';
-    }
-    
     document.getElementById("profile-club-logo").src = club?.logo || 'https://via.placeholder.com/30';
     document.getElementById("profile-club-name").textContent = club?.name || 'Sem clube';
     document.getElementById("profile-age").textContent = player.age ? `${player.age} anos` : '-';

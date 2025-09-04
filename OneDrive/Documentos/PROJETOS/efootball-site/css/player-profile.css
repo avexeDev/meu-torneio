@@ -58,28 +58,6 @@
     margin-bottom: 15px;
 }
 
-.player-nationality-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.player-flag-large {
-    width: 32px;
-    height: 24px;
-    border-radius: 4px;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.player-nationality-text {
-    font-size: 1.1rem;
-    font-weight: 500;
-    opacity: 0.9;
-}
-
 .player-club-info {
     display: flex;
     align-items: center;
