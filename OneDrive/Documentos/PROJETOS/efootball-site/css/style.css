@@ -4495,3 +4495,22 @@ body {
     .coach-basic-details h4 {
         font-size: 1.3rem;
     }
+
+/* Player Card com Logo do Clube */
+.player-photo-container {
+    position: relative;
+    display: inline-block;
+}
+
+.player-club-badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--card-bg);
+    object-fit: cover;
+    background: var(--card-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

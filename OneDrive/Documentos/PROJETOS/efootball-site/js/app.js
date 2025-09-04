@@ -396,7 +396,10 @@ class TournamentManager {
         const club = this.data.clubs.find((c) => c.id == player.clubId);
         return `
         <div class="card">
-          <img src="${player.photo || 'https://via.placeholder.com/60'}" alt="${player.name}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+          <div class="player-photo-container">
+            <img src="${player.photo || 'https://via.placeholder.com/60'}" alt="${player.name}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+            <img src="${club?.logo || 'https://via.placeholder.com/24'}" alt="${club?.name || 'Clube'}" class="player-club-badge">
+          </div>
           <h3>${player.name}</h3>
           <p><strong>Posição:</strong> ${player.position}</p>
           <p><strong>Idade:</strong> ${player.age || 'N/A'} anos</p>
