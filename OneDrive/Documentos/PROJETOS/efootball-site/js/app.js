@@ -396,7 +396,10 @@ class TournamentManager {
           <p><strong>Idade:</strong> ${player.age || 'N/A'} anos</p>
           <p><strong>Nacionalidade:</strong> ${player.nationality}</p>
           <p><strong>Clube:</strong> ${club ? club.name : 'Sem clube'}</p>
-          <button class="btn-edit" onclick="app.editPlayer(${player.id})">Editar</button>
+          <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-primary" onclick="app.showPlayerProfile(${player.id})" style="flex: 1;">Ver Perfil</button>
+            <button class="btn-edit" onclick="app.editPlayer(${player.id})">Editar</button>
+          </div>
         </div>
       `;
       })
@@ -1009,6 +1012,141 @@ class TournamentManager {
     this.loadRounds();
   }
 
+  // Perfil do Jogador
+  showPlayerProfile(playerId) {
+    const player = this.data.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    const club = this.data.clubs.find(c => c.id == player.clubId);
+    const matches = this.getUserData("matches").filter(m => m.status === "finished");
+    
+    // Calcular estatísticas do jogador
+    const playerStats = {
+      matches: 0,
+      goals: 0,
+      assists: 0,
+      yellowCards: 0,
+      redCards: 0,
+      matchHistory: []
+    };
+
+    matches.forEach(match => {
+      let playerInMatch = false;
+      const matchEvents = [];
+      
+      if (match.events) {
+        match.events.forEach(event => {
+          if (event.playerId == player.id || event.player === player.name) {
+            playerInMatch = true;
+            matchEvents.push(event);
+            
+            switch (event.type) {
+              case "Gol":
+                playerStats.goals++;
+                break;
+              case "Assistência":
+                playerStats.assists++;
+                break;
+              case "Cartão Amarelo":
+                playerStats.yellowCards++;
+                break;
+              case "Cartão Vermelho":
+                playerStats.redCards++;
+                break;
+            }
+          }
+        });
+      }
+      
+      if (playerInMatch) {
+        playerStats.matches++;
+        const homeTeam = this.data.clubs.find(c => c.id == match.homeTeamId);
+        const awayTeam = this.data.clubs.find(c => c.id == match.awayTeamId);
+        
+        playerStats.matchHistory.push({
+          date: match.date,
+          homeTeam: homeTeam,
+          awayTeam: awayTeam,
+          score: `${match.homeScore} - ${match.awayScore}`,
+          events: matchEvents
+        });
+      }
+    });
+
+    // Preencher dados do modal
+    document.getElementById("profile-photo").src = player.photo || 'https://via.placeholder.com/120';
+    document.getElementById("profile-name").textContent = player.name;
+    document.getElementById("profile-position").textContent = player.position;
+    document.getElementById("profile-club-logo").src = club?.logo || 'https://via.placeholder.com/30';
+    document.getElementById("profile-club-name").textContent = club?.name || 'Sem clube';
+    document.getElementById("profile-age").textContent = player.age ? `${player.age} anos` : '-';
+    document.getElementById("profile-birthdate").textContent = player.birthdate ? new Date(player.birthdate).toLocaleDateString('pt-BR') : '-';
+    document.getElementById("profile-nationality").textContent = player.nationality || '-';
+    document.getElementById("profile-height").textContent = player.height ? `${player.height} cm` : '-';
+    document.getElementById("profile-number").textContent = player.number || '-';
+    
+    // Estatísticas
+    document.getElementById("profile-matches").textContent = playerStats.matches;
+    document.getElementById("profile-goals").textContent = playerStats.goals;
+    document.getElementById("profile-assists").textContent = playerStats.assists;
+    document.getElementById("profile-yellow-cards").textContent = playerStats.yellowCards;
+    document.getElementById("profile-red-cards").textContent = playerStats.redCards;
+    document.getElementById("profile-rating").textContent = playerStats.matches > 0 ? ((playerStats.goals * 2 + playerStats.assists) / playerStats.matches).toFixed(1) : '-';
+    
+    // Histórico de partidas
+    const timeline = document.getElementById("profile-matches-timeline");
+    if (playerStats.matchHistory.length === 0) {
+      timeline.innerHTML = '<div class="no-matches">Nenhuma partida encontrada</div>';
+    } else {
+      timeline.innerHTML = playerStats.matchHistory.map(match => `
+        <div class="match-timeline-item">
+          <div class="match-date">${new Date(match.date).toLocaleDateString('pt-BR')}</div>
+          <div class="match-teams">
+            <div class="match-team-logos">
+              <img src="${match.homeTeam?.logo || 'https://via.placeholder.com/25'}" class="match-team-logo" alt="${match.homeTeam?.name}">
+              <span class="match-vs">vs</span>
+              <img src="${match.awayTeam?.logo || 'https://via.placeholder.com/25'}" class="match-team-logo" alt="${match.awayTeam?.name}">
+            </div>
+          </div>
+          <div class="match-result">${match.score}</div>
+          <div class="match-events">
+            ${match.events.map(event => {
+              let className = '';
+              let icon = '';
+              switch (event.type) {
+                case 'Gol':
+                  className = 'event-goal';
+                  icon = '⚽';
+                  break;
+                case 'Assistência':
+                  className = 'event-assist';
+                  icon = '🅰️';
+                  break;
+                case 'Cartão Amarelo':
+                  className = 'event-yellow';
+                  icon = '🟨';
+                  break;
+                case 'Cartão Vermelho':
+                  className = 'event-red';
+                  icon = '🟥';
+                  break;
+                default:
+                  return '';
+              }
+              return `<span class="event-badge ${className}">${icon}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    document.getElementById("player-profile-modal").style.display = "block";
+  }
+
+  closePlayerProfile() {
+    document.getElementById("player-profile-modal").style.display = "none";
+  }
+
   // Theme
   toggleTheme() {
     const currentTheme = document.documentElement.getAttribute("data-theme");
@@ -1218,6 +1356,9 @@ class TournamentManager {
       if (e.target.classList.contains("modal")) {
         e.target.style.display = "none";
         this.resetModalForms(e.target);
+      }
+      if (e.target.classList.contains("player-profile-modal")) {
+        this.closePlayerProfile();
       }
     });
 
