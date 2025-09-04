@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/player-profile.css" />
     <link rel="stylesheet" href="css/club-profile.css" />
+    <link rel="stylesheet" href="css/tournament-profile.css" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -671,6 +672,92 @@
 
           <button type="submit">Salvar Partida</button>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal do Perfil do Torneio -->
+    <div id="tournament-profile-modal" class="tournament-profile-modal">
+      <div class="tournament-profile-content">
+        <div class="tournament-header">
+          <button class="tournament-close" onclick="app.closeTournamentProfile()">&times;</button>
+          <div class="tournament-header-content">
+            <img id="tournament-profile-logo" class="tournament-logo-large" src="" alt="Torneio">
+            <div class="tournament-basic-info">
+              <h1 id="tournament-profile-name">Nome do Torneio</h1>
+              <div id="tournament-profile-game" class="tournament-game-badge">Jogo</div>
+              <div class="tournament-dates">
+                <span id="tournament-profile-dates">Datas do torneio</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tournament-body">
+          <div class="tournament-tabs">
+            <button class="tournament-tab active" onclick="app.showTournamentTab('standings')">Classificação</button>
+            <button class="tournament-tab" onclick="app.showTournamentTab('matches')">Partidas</button>
+            <button class="tournament-tab" onclick="app.showTournamentTab('statistics')">Estatísticas</button>
+            <button class="tournament-tab" onclick="app.showTournamentTab('clubs')">Clubes</button>
+          </div>
+          
+          <!-- Classificação -->
+          <div id="tournament-standings" class="tournament-tab-content active">
+            <div class="standings-container">
+              <table class="standings-table" id="tournament-standings-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Clube</th>
+                    <th>J</th>
+                    <th>V</th>
+                    <th>E</th>
+                    <th>D</th>
+                    <th>GP</th>
+                    <th>GC</th>
+                    <th>SG</th>
+                    <th>Pts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td colspan="10" class="no-data">Nenhum dado de classificação encontrado</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <!-- Partidas -->
+          <div id="tournament-matches" class="tournament-tab-content">
+            <div class="matches-container" id="tournament-matches-container">
+              <div class="no-data">Nenhuma partida encontrada</div>
+            </div>
+          </div>
+          
+          <!-- Estatísticas -->
+          <div id="tournament-statistics" class="tournament-tab-content">
+            <div class="tournament-statistics-grid">
+              <div class="tournament-stats-card">
+                <h3>Artilheiros do Torneio</h3>
+                <div class="tournament-top-scorers" id="tournament-top-scorers-list">
+                  <div class="no-data">Nenhum artilheiro encontrado</div>
+                </div>
+              </div>
+              
+              <div class="tournament-stats-card">
+                <h3>Assistências do Torneio</h3>
+                <div class="tournament-top-assists" id="tournament-top-assists-list">
+                  <div class="no-data">Nenhuma assistência encontrada</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Clubes -->
+          <div id="tournament-clubs" class="tournament-tab-content">
+            <div class="tournament-clubs-grid" id="tournament-clubs-list">
+              <div class="no-data">Nenhum clube encontrado</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

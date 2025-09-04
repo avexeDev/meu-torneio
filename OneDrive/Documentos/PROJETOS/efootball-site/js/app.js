@@ -189,7 +189,10 @@ class TournamentManager {
           <p><strong>Jogo:</strong> ${tournament.game === 'efootball' ? 'eFootball' : tournament.game === 'fifa' ? 'FIFA' : tournament.game}</p>
           <p><strong>Início:</strong> ${new Date(tournament.startDate).toLocaleDateString('pt-BR')}</p>
           <p><strong>Descrição:</strong> ${tournament.description || 'Sem descrição'}</p>
-          <button class="btn-edit" onclick="app.editTournament(${tournament.id})">Editar</button>
+          <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-primary" onclick="app.showTournamentProfile(${tournament.id})" style="flex: 1;">Ver Torneio</button>
+            <button class="btn-edit" onclick="app.editTournament(${tournament.id})">Editar</button>
+          </div>
         </div>
       `
       )
@@ -1376,6 +1379,293 @@ class TournamentManager {
     document.getElementById("club-profile-modal").style.display = "none";
   }
 
+  // Perfil do Torneio
+  showTournamentProfile(tournamentId) {
+    const tournament = this.data.tournaments.find(t => t.id === tournamentId);
+    if (!tournament) return;
+
+    const tournamentClubs = this.getUserData("clubs").filter(c => c.tournamentId == tournament.id);
+    const tournamentMatches = this.getUserData("matches").filter(m => m.tournamentId == tournament.id);
+    
+    // Preencher dados do modal
+    document.getElementById("tournament-profile-logo").src = tournament.logo || 'https://via.placeholder.com/120';
+    document.getElementById("tournament-profile-name").textContent = tournament.name;
+    document.getElementById("tournament-profile-game").textContent = tournament.game === 'efootball' ? 'eFootball' : tournament.game === 'fifa' ? 'FIFA' : tournament.game;
+    document.getElementById("tournament-profile-dates").textContent = `Início: ${new Date(tournament.startDate).toLocaleDateString('pt-BR')}`;
+    
+    this.loadTournamentStandings(tournamentClubs, tournamentMatches);
+    this.loadTournamentMatches(tournamentMatches);
+    this.loadTournamentStatistics(tournamentMatches);
+    this.loadTournamentClubs(tournamentClubs, tournamentMatches);
+    
+    document.getElementById("tournament-profile-modal").style.display = "block";
+  }
+
+  loadTournamentStandings(clubs, matches) {
+    if (clubs.length === 0) {
+      document.querySelector("#tournament-standings-table tbody").innerHTML = 
+        '<tr><td colspan="10" class="no-data">Nenhum clube encontrado</td></tr>';
+      return;
+    }
+
+    // Calcular classificação
+    const standings = clubs.map(club => {
+      const clubMatches = matches.filter(m => 
+        (m.homeTeamId == club.id || m.awayTeamId == club.id) && m.status === "finished"
+      );
+      
+      const stats = {
+        club,
+        matches: clubMatches.length,
+        wins: 0,
+        draws: 0,
+        losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        points: 0
+      };
+      
+      clubMatches.forEach(match => {
+        const isHome = match.homeTeamId == club.id;
+        const clubScore = isHome ? match.homeScore : match.awayScore;
+        const opponentScore = isHome ? match.awayScore : match.homeScore;
+        
+        stats.goalsFor += clubScore;
+        stats.goalsAgainst += opponentScore;
+        
+        if (clubScore > opponentScore) {
+          stats.wins++;
+          stats.points += 3;
+        } else if (clubScore === opponentScore) {
+          stats.draws++;
+          stats.points += 1;
+        } else {
+          stats.losses++;
+        }
+      });
+      
+      stats.goalDifference = stats.goalsFor - stats.goalsAgainst;
+      return stats;
+    });
+    
+    // Ordenar por pontos, saldo de gols, gols pró
+    standings.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+      return b.goalsFor - a.goalsFor;
+    });
+    
+    const tbody = document.querySelector("#tournament-standings-table tbody");
+    tbody.innerHTML = standings.map((team, index) => {
+      let positionClass = '';
+      if (index === 0) positionClass = 'position-champion';
+      else if (index < 4) positionClass = 'position-qualified';
+      else if (index >= standings.length - 2) positionClass = 'position-relegation';
+      
+      return `
+        <tr>
+          <td><div class="standings-position ${positionClass}">${index + 1}</div></td>
+          <td>
+            <div class="team-info" onclick="app.showClubProfile(${team.club.id})">
+              <img src="${team.club.logo || 'https://via.placeholder.com/30'}" class="team-logo" alt="${team.club.name}">
+              <span class="team-name">${team.club.name}</span>
+            </div>
+          </td>
+          <td class="stat-number">${team.matches}</td>
+          <td class="stat-number">${team.wins}</td>
+          <td class="stat-number">${team.draws}</td>
+          <td class="stat-number">${team.losses}</td>
+          <td class="stat-number">${team.goalsFor}</td>
+          <td class="stat-number">${team.goalsAgainst}</td>
+          <td class="stat-number">${team.goalDifference > 0 ? '+' : ''}${team.goalDifference}</td>
+          <td class="stat-number" style="font-weight: 700; color: var(--primary-color);">${team.points}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  loadTournamentMatches(matches) {
+    const container = document.getElementById("tournament-matches-container");
+    if (matches.length === 0) {
+      container.innerHTML = '<div class="no-data">Nenhuma partida encontrada</div>';
+      return;
+    }
+
+    // Agrupar por rodada
+    const matchesByRound = {};
+    matches.forEach(match => {
+      if (!matchesByRound[match.round]) {
+        matchesByRound[match.round] = [];
+      }
+      matchesByRound[match.round].push(match);
+    });
+
+    container.innerHTML = Object.keys(matchesByRound)
+      .sort((a, b) => parseInt(a) - parseInt(b))
+      .map(round => {
+        const roundMatches = matchesByRound[round];
+        return `
+          <div class="round-section">
+            <div class="round-header">
+              <div class="round-title">Rodada ${round}</div>
+            </div>
+            <div class="round-matches">
+              ${roundMatches.map(match => {
+                const homeTeam = this.data.clubs.find(c => c.id == match.homeTeamId);
+                const awayTeam = this.data.clubs.find(c => c.id == match.awayTeamId);
+                const isFinished = match.status === "finished";
+                
+                return `
+                  <div class="tournament-match-item">
+                    <div class="tournament-match-time">${new Date(match.date).toLocaleDateString('pt-BR')}</div>
+                    <div class="tournament-match-teams">
+                      <div class="tournament-match-team home">
+                        <span class="tournament-match-team-name">${homeTeam?.name}</span>
+                        <img src="${homeTeam?.logo || 'https://via.placeholder.com/25'}" class="tournament-match-team-logo" alt="${homeTeam?.name}">
+                      </div>
+                      <div class="tournament-match-score">
+                        ${isFinished ? `${match.homeScore} - ${match.awayScore}` : 'vs'}
+                      </div>
+                      <div class="tournament-match-team">
+                        <img src="${awayTeam?.logo || 'https://via.placeholder.com/25'}" class="tournament-match-team-logo" alt="${awayTeam?.name}">
+                        <span class="tournament-match-team-name">${awayTeam?.name}</span>
+                      </div>
+                    </div>
+                    <div class="match-status-badge ${isFinished ? 'status-finished' : 'status-scheduled'}">
+                      ${isFinished ? 'Finalizada' : 'Agendada'}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+  }
+
+  loadTournamentStatistics(matches) {
+    const scorers = {};
+    const assists = {};
+    
+    matches.forEach(match => {
+      if (match.events) {
+        match.events.forEach(event => {
+          const player = this.data.players.find(p => p.id == event.playerId || p.name === event.player);
+          const club = this.data.clubs.find(c => c.id == player?.clubId);
+          
+          if (player && event.type === "Gol") {
+            scorers[player.id] = scorers[player.id] || { player, club, goals: 0 };
+            scorers[player.id].goals++;
+          } else if (player && event.type === "Assistência") {
+            assists[player.id] = assists[player.id] || { player, club, assists: 0 };
+            assists[player.id].assists++;
+          }
+        });
+      }
+    });
+    
+    // Top scorers
+    const topScorers = Object.values(scorers).sort((a, b) => b.goals - a.goals).slice(0, 10);
+    const scorersContainer = document.getElementById("tournament-top-scorers-list");
+    if (topScorers.length === 0) {
+      scorersContainer.innerHTML = '<div class="no-data">Nenhum artilheiro encontrado</div>';
+    } else {
+      scorersContainer.innerHTML = topScorers.map(scorer => `
+        <div class="tournament-player-item" onclick="app.showPlayerProfile(${scorer.player.id})">
+          <div class="tournament-player-info">
+            <img src="${scorer.player.photo || 'https://via.placeholder.com/40'}" class="tournament-player-photo" alt="${scorer.player.name}">
+            <div class="tournament-player-details">
+              <div class="tournament-player-name">${scorer.player.name}</div>
+              <div class="tournament-player-club">${scorer.club?.name || 'Sem clube'}</div>
+            </div>
+          </div>
+          <div class="tournament-player-stat">${scorer.goals}</div>
+        </div>
+      `).join('');
+    }
+    
+    // Top assists
+    const topAssists = Object.values(assists).sort((a, b) => b.assists - a.assists).slice(0, 10);
+    const assistsContainer = document.getElementById("tournament-top-assists-list");
+    if (topAssists.length === 0) {
+      assistsContainer.innerHTML = '<div class="no-data">Nenhuma assistência encontrada</div>';
+    } else {
+      assistsContainer.innerHTML = topAssists.map(assist => `
+        <div class="tournament-player-item" onclick="app.showPlayerProfile(${assist.player.id})">
+          <div class="tournament-player-info">
+            <img src="${assist.player.photo || 'https://via.placeholder.com/40'}" class="tournament-player-photo" alt="${assist.player.name}">
+            <div class="tournament-player-details">
+              <div class="tournament-player-name">${assist.player.name}</div>
+              <div class="tournament-player-club">${assist.club?.name || 'Sem clube'}</div>
+            </div>
+          </div>
+          <div class="tournament-player-stat">${assist.assists}</div>
+        </div>
+      `).join('');
+    }
+  }
+
+  loadTournamentClubs(clubs, matches) {
+    const container = document.getElementById("tournament-clubs-list");
+    if (clubs.length === 0) {
+      container.innerHTML = '<div class="no-data">Nenhum clube encontrado</div>';
+      return;
+    }
+
+    container.innerHTML = clubs.map(club => {
+      const clubMatches = matches.filter(m => 
+        (m.homeTeamId == club.id || m.awayTeamId == club.id) && m.status === "finished"
+      );
+      const clubPlayers = this.getUserData("players").filter(p => p.clubId == club.id);
+      
+      let wins = 0;
+      clubMatches.forEach(match => {
+        const isHome = match.homeTeamId == club.id;
+        const clubScore = isHome ? match.homeScore : match.awayScore;
+        const opponentScore = isHome ? match.awayScore : match.homeScore;
+        if (clubScore > opponentScore) wins++;
+      });
+      
+      return `
+        <div class="tournament-club-card" onclick="app.showClubProfile(${club.id})">
+          <div class="tournament-club-header">
+            <img src="${club.logo || 'https://via.placeholder.com/60'}" class="tournament-club-logo" alt="${club.name}">
+            <div class="tournament-club-info">
+              <h4>${club.name}</h4>
+              <div class="tournament-club-country">${club.country}</div>
+            </div>
+          </div>
+          <div class="tournament-club-stats">
+            <div class="tournament-club-stat">
+              <div class="tournament-club-stat-number">${clubMatches.length}</div>
+              <div class="tournament-club-stat-label">Jogos</div>
+            </div>
+            <div class="tournament-club-stat">
+              <div class="tournament-club-stat-number">${wins}</div>
+              <div class="tournament-club-stat-label">Vitórias</div>
+            </div>
+            <div class="tournament-club-stat">
+              <div class="tournament-club-stat-number">${clubPlayers.length}</div>
+              <div class="tournament-club-stat-label">Jogadores</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  showTournamentTab(tabName) {
+    document.querySelectorAll('.tournament-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tournament-tab-content').forEach(content => content.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(`tournament-${tabName}`).classList.add('active');
+  }
+
+  closeTournamentProfile() {
+    document.getElementById("tournament-profile-modal").style.display = "none";
+  }
+
   // Theme
   toggleTheme() {
     const currentTheme = document.documentElement.getAttribute("data-theme");
@@ -1591,6 +1881,9 @@ class TournamentManager {
       }
       if (e.target.classList.contains("club-profile-modal")) {
         this.closeClubProfile();
+      }
+      if (e.target.classList.contains("tournament-profile-modal")) {
+        this.closeTournamentProfile();
       }
     });
 
