@@ -736,14 +736,14 @@
           <div id="tournament-statistics" class="tournament-tab-content">
             <div class="tournament-statistics-grid">
               <div class="tournament-stats-card">
-                <h3>Artilheiros do Torneio</h3>
+                <h3>Artilheiros - Temporada ${new Date().getFullYear()}</h3>
                 <div class="tournament-top-scorers" id="tournament-top-scorers-list">
                   <div class="no-data">Nenhum artilheiro encontrado</div>
                 </div>
               </div>
               
               <div class="tournament-stats-card">
-                <h3>Assistências do Torneio</h3>
+                <h3>Assistências - Temporada ${new Date().getFullYear()}</h3>
                 <div class="tournament-top-assists" id="tournament-top-assists-list">
                   <div class="no-data">Nenhuma assistência encontrada</div>
                 </div>
@@ -857,14 +857,14 @@
           <div id="club-statistics" class="club-tab-content">
             <div class="club-statistics-grid">
               <div class="club-stats-card">
-                <h3>Artilheiros do Clube</h3>
+                <h3>Artilheiros - Temporada ${new Date().getFullYear()}</h3>
                 <div class="top-scorers-list" id="club-top-scorers">
                   <div class="no-data">Nenhum artilheiro encontrado</div>
                 </div>
               </div>
               
               <div class="club-stats-card">
-                <h3>Assistências do Clube</h3>
+                <h3>Assistências - Temporada ${new Date().getFullYear()}</h3>
                 <div class="top-assists-list" id="club-top-assists">
                   <div class="no-data">Nenhuma assistência encontrada</div>
                 </div>
@@ -907,7 +907,10 @@
               </div>
               <div class="player-detail-item">
                 <span class="player-detail-label">Nacionalidade</span>
-                <span class="player-detail-value" id="profile-nationality">-</span>
+                <span class="player-detail-value nationality-flag" id="profile-nationality">
+                  <img class="flag-icon" id="profile-nationality-flag" src="" alt="Bandeira">
+                  <span id="profile-nationality-text">-</span>
+                </span>
               </div>
               <div class="player-detail-item">
                 <span class="player-detail-label">Altura</span>
@@ -920,7 +923,7 @@
             </div>
             
             <div class="player-info-card">
-              <h3>Estatísticas da Temporada</h3>
+              <h3>Estatísticas da Temporada ${new Date().getFullYear()}</h3>
               <div class="player-stats-summary">
                 <div class="stat-box">
                   <div class="stat-number" id="profile-matches">0</div>
@@ -950,9 +953,18 @@
             </div>
           </div>
           
+          <div class="club-history-section">
+            <div class="player-info-card">
+              <h3>Histórico de Clubes</h3>
+              <div class="club-history-timeline" id="profile-club-history">
+                <div class="no-matches">Nenhum histórico encontrado</div>
+              </div>
+            </div>
+          </div>
+          
           <div class="player-matches-history">
             <div class="player-info-card">
-              <h3>Histórico de Partidas</h3>
+              <h3>Histórico de Partidas - Temporada Atual</h3>
               <div class="matches-timeline" id="profile-matches-timeline">
                 <div class="no-matches">Nenhuma partida encontrada</div>
               </div>

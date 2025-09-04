@@ -400,7 +400,12 @@ class TournamentManager {
           <h3>${player.name}</h3>
           <p><strong>Posição:</strong> ${player.position}</p>
           <p><strong>Idade:</strong> ${player.age || 'N/A'} anos</p>
-          <p><strong>Nacionalidade:</strong> ${player.nationality}</p>
+          <p><strong>Nacionalidade:</strong> 
+            <span class="nationality-flag">
+              <img src="${this.getCountryFlag(player.nationality)}" class="flag-icon" alt="${player.nationality}" style="width: 16px; height: 12px; margin-right: 5px;">
+              ${player.nationality}
+            </span>
+          </p>
           <p><strong>Clube:</strong> ${club ? club.name : 'Sem clube'}</p>
           <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn-primary" onclick="app.showPlayerProfile(${player.id})" style="flex: 1;">Ver Perfil</button>
@@ -1018,6 +1023,57 @@ class TournamentManager {
     this.loadRounds();
   }
 
+  // Função para obter bandeira do país
+  getCountryFlag(country) {
+    const flags = {
+      'Brasil': 'https://flagcdn.com/w20/br.png',
+      'Argentina': 'https://flagcdn.com/w20/ar.png',
+      'Uruguai': 'https://flagcdn.com/w20/uy.png',
+      'Chile': 'https://flagcdn.com/w20/cl.png',
+      'Colômbia': 'https://flagcdn.com/w20/co.png',
+      'Peru': 'https://flagcdn.com/w20/pe.png',
+      'Equador': 'https://flagcdn.com/w20/ec.png',
+      'Venezuela': 'https://flagcdn.com/w20/ve.png',
+      'Bolívia': 'https://flagcdn.com/w20/bo.png',
+      'Paraguai': 'https://flagcdn.com/w20/py.png',
+      'Portugal': 'https://flagcdn.com/w20/pt.png',
+      'Espanha': 'https://flagcdn.com/w20/es.png',
+      'França': 'https://flagcdn.com/w20/fr.png',
+      'Itália': 'https://flagcdn.com/w20/it.png',
+      'Alemanha': 'https://flagcdn.com/w20/de.png',
+      'Inglaterra': 'https://flagcdn.com/w20/gb-eng.png',
+      'Holanda': 'https://flagcdn.com/w20/nl.png',
+      'Bélgica': 'https://flagcdn.com/w20/be.png',
+      'Croácia': 'https://flagcdn.com/w20/hr.png',
+      'Sérvia': 'https://flagcdn.com/w20/rs.png',
+      'Polônia': 'https://flagcdn.com/w20/pl.png',
+      'República Tcheca': 'https://flagcdn.com/w20/cz.png',
+      'Dinamarca': 'https://flagcdn.com/w20/dk.png',
+      'Suécia': 'https://flagcdn.com/w20/se.png',
+      'Noruega': 'https://flagcdn.com/w20/no.png',
+      'Finlândia': 'https://flagcdn.com/w20/fi.png',
+      'Japão': 'https://flagcdn.com/w20/jp.png',
+      'Coreia do Sul': 'https://flagcdn.com/w20/kr.png',
+      'Austrália': 'https://flagcdn.com/w20/au.png',
+      'Estados Unidos': 'https://flagcdn.com/w20/us.png',
+      'Canadá': 'https://flagcdn.com/w20/ca.png',
+      'México': 'https://flagcdn.com/w20/mx.png',
+      'Costa Rica': 'https://flagcdn.com/w20/cr.png',
+      'Panamá': 'https://flagcdn.com/w20/pa.png',
+      'Jamaica': 'https://flagcdn.com/w20/jm.png',
+      'Marrocos': 'https://flagcdn.com/w20/ma.png',
+      'Argélia': 'https://flagcdn.com/w20/dz.png',
+      'Tunísia': 'https://flagcdn.com/w20/tn.png',
+      'Egito': 'https://flagcdn.com/w20/eg.png',
+      'Nigéria': 'https://flagcdn.com/w20/ng.png',
+      'Gana': 'https://flagcdn.com/w20/gh.png',
+      'Senegal': 'https://flagcdn.com/w20/sn.png',
+      'Camarões': 'https://flagcdn.com/w20/cm.png',
+      'África do Sul': 'https://flagcdn.com/w20/za.png'
+    };
+    return flags[country] || 'https://flagcdn.com/w20/xx.png';
+  }
+
   // Perfil do Jogador
   showPlayerProfile(playerId) {
     const player = this.data.players.find(p => p.id === playerId);
@@ -1087,7 +1143,17 @@ class TournamentManager {
     document.getElementById("profile-club-name").textContent = club?.name || 'Sem clube';
     document.getElementById("profile-age").textContent = player.age ? `${player.age} anos` : '-';
     document.getElementById("profile-birthdate").textContent = player.birthdate ? new Date(player.birthdate).toLocaleDateString('pt-BR') : '-';
-    document.getElementById("profile-nationality").textContent = player.nationality || '-';
+    // Nacionalidade com bandeira
+    const nationalityFlag = document.getElementById("profile-nationality-flag");
+    const nationalityText = document.getElementById("profile-nationality-text");
+    if (player.nationality) {
+      nationalityFlag.src = this.getCountryFlag(player.nationality);
+      nationalityFlag.style.display = 'inline';
+      nationalityText.textContent = player.nationality;
+    } else {
+      nationalityFlag.style.display = 'none';
+      nationalityText.textContent = '-';
+    }
     document.getElementById("profile-height").textContent = player.height ? `${player.height} cm` : '-';
     document.getElementById("profile-number").textContent = player.number || '-';
     
@@ -1099,54 +1165,140 @@ class TournamentManager {
     document.getElementById("profile-red-cards").textContent = playerStats.redCards;
     document.getElementById("profile-rating").textContent = playerStats.matches > 0 ? ((playerStats.goals * 2 + playerStats.assists) / playerStats.matches).toFixed(1) : '-';
     
-    // Histórico de partidas
-    const timeline = document.getElementById("profile-matches-timeline");
-    if (playerStats.matchHistory.length === 0) {
-      timeline.innerHTML = '<div class="no-matches">Nenhuma partida encontrada</div>';
-    } else {
-      timeline.innerHTML = playerStats.matchHistory.map(match => `
-        <div class="match-timeline-item">
-          <div class="match-date">${new Date(match.date).toLocaleDateString('pt-BR')}</div>
-          <div class="match-teams">
-            <div class="match-team-logos">
-              <img src="${match.homeTeam?.logo || 'https://via.placeholder.com/25'}" class="match-team-logo" alt="${match.homeTeam?.name}">
-              <span class="match-vs">vs</span>
-              <img src="${match.awayTeam?.logo || 'https://via.placeholder.com/25'}" class="match-team-logo" alt="${match.awayTeam?.name}">
-            </div>
-          </div>
-          <div class="match-result">${match.score}</div>
-          <div class="match-events">
-            ${match.events.map(event => {
-              let className = '';
-              let icon = '';
-              switch (event.type) {
-                case 'Gol':
-                  className = 'event-goal';
-                  icon = '⚽';
-                  break;
-                case 'Assistência':
-                  className = 'event-assist';
-                  icon = '🅰️';
-                  break;
-                case 'Cartão Amarelo':
-                  className = 'event-yellow';
-                  icon = '🟨';
-                  break;
-                case 'Cartão Vermelho':
-                  className = 'event-red';
-                  icon = '🟥';
-                  break;
-                default:
-                  return '';
-              }
-              return `<span class="event-badge ${className}">${icon}</span>`;
-            }).join('')}
-          </div>
-        </div>
-      `).join('');
-    }
+
     
     document.getElementById("player-profile-modal").style.display = "block";
+  }
+
+  loadPlayerClubHistory(player) {
+    const container = document.getElementById("profile-club-history");
+    const currentClub = this.data.clubs.find(c => c.id == player.clubId);
+    const currentYear = new Date().getFullYear();
+    
+    // Simular histórico de clubes (na prática, isso viria do banco de dados)
+    const clubHistory = [];
+    
+    // Clube atual (temporada atual)
+    if (currentClub) {
+      const currentSeasonMatches = this.getUserData("matches").filter(m => 
+        m.status === "finished" && m.events && 
+        m.events.some(e => e.playerId == player.id || e.player === player.name)
+      );
+      
+      let currentSeasonStats = {
+        matches: 0,
+        goals: 0,
+        assists: 0
+      };
+      
+      currentSeasonMatches.forEach(match => {
+        let playerInMatch = false;
+        match.events.forEach(event => {
+          if (event.playerId == player.id || event.player === player.name) {
+            if (!playerInMatch) {
+              currentSeasonStats.matches++;
+              playerInMatch = true;
+            }
+            if (event.type === "Gol") currentSeasonStats.goals++;
+            if (event.type === "Assistência") currentSeasonStats.assists++;
+          }
+        });
+      });
+      
+      clubHistory.push({
+        club: currentClub,
+        period: `${currentYear} - Atual`,
+        isCurrent: true,
+        stats: currentSeasonStats
+      });
+    }
+    
+    // Adicionar clubes anteriores (exemplo)
+    const previousClubs = [
+      { name: "Clube Anterior 1", period: `${currentYear - 1}`, stats: { matches: 25, goals: 8, assists: 5 } },
+      { name: "Clube Anterior 2", period: `${currentYear - 2}`, stats: { matches: 30, goals: 12, assists: 7 } }
+    ];
+    
+    if (clubHistory.length === 0 && previousClubs.length === 0) {
+      container.innerHTML = '<div class="no-matches">Nenhum histórico encontrado</div>';
+      return;
+    }
+    
+    container.innerHTML = clubHistory.map(history => `
+      <div class="club-history-item ${history.isCurrent ? 'current-season' : ''}">
+        <img src="${history.club.logo || 'https://via.placeholder.com/40'}" class="club-history-logo" alt="${history.club.name}">
+        <div class="club-history-info">
+          <div class="club-history-name">
+            ${history.club.name}
+            ${history.isCurrent ? '<span class="current-season-badge">Temporada Atual</span>' : ''}
+          </div>
+          <div class="club-history-period">${history.period}</div>
+        </div>
+        <div class="season-stats">
+          <div class="season-stat">
+            <div class="season-stat-number">${history.stats.matches}</div>
+            <div class="season-stat-label">Jogos</div>
+          </div>
+          <div class="season-stat">
+            <div class="season-stat-number">${history.stats.goals}</div>
+            <div class="season-stat-label">Gols</div>
+          </div>
+          <div class="season-stat">
+            <div class="season-stat-number">${history.stats.assists}</div>
+            <div class="season-stat-label">Assists</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  loadPlayerMatches(matchHistory) {
+    const timeline = document.getElementById("profile-matches-timeline");
+    if (matchHistory.length === 0) {
+      timeline.innerHTML = '<div class="no-matches">Nenhuma partida encontrada na temporada atual</div>';
+      return;
+    }
+
+    timeline.innerHTML = matchHistory.map(match => `
+      <div class="match-timeline-item">
+        <div class="match-date">${new Date(match.date).toLocaleDateString('pt-BR')}</div>
+        <div class="match-teams">
+          <div class="match-team-logos">
+            <img src="${match.homeTeam?.logo || 'https://via.placeholder.com/25'}" class="match-team-logo" alt="${match.homeTeam?.name}">
+            <span class="match-vs">vs</span>
+            <img src="${match.awayTeam?.logo || 'https://via.placeholder.com/25'}" class="match-team-logo" alt="${match.awayTeam?.name}">
+          </div>
+        </div>
+        <div class="match-result">${match.score}</div>
+        <div class="match-events">
+          ${match.events.map(event => {
+            let className = '';
+            let icon = '';
+            switch (event.type) {
+              case 'Gol':
+                className = 'event-goal';
+                icon = '⚽';
+                break;
+              case 'Assistência':
+                className = 'event-assist';
+                icon = '🅰️';
+                break;
+              case 'Cartão Amarelo':
+                className = 'event-yellow';
+                icon = '🟨';
+                break;
+              case 'Cartão Vermelho':
+                className = 'event-red';
+                icon = '🟥';
+                break;
+              default:
+                return '';
+            }
+            return `<span class="event-badge ${className}">${icon}</span>`;
+          }).join('')}
+        </div>
+      </div>
+    `).join('');
   }
 
   closePlayerProfile() {
@@ -1214,8 +1366,8 @@ class TournamentManager {
     document.getElementById("club-foreign-players").textContent = foreignPlayers;
     
     this.loadClubSquad(clubPlayers);
-    this.loadClubMatches(clubMatches, club);
-    this.loadClubStatistics(clubPlayers, clubMatches);
+    this.loadPlayerClubHistory(player);
+    this.loadPlayerMatches(playerStats.matchHistory);
     
     document.getElementById("club-profile-modal").style.display = "block";
   }
@@ -1247,7 +1399,10 @@ class TournamentManager {
           </div>
           <div class="squad-player-detail">
             <span>Nacionalidade</span>
-            <span>${player.nationality || '-'}</span>
+            <span class="nationality-flag" style="display: flex; align-items: center; gap: 5px;">
+              ${player.nationality ? `<img src="${this.getCountryFlag(player.nationality)}" style="width: 16px; height: 12px;" alt="${player.nationality}">` : ''}
+              ${player.nationality || '-'}
+            </span>
           </div>
           <div class="squad-player-detail">
             <span>Altura</span>
