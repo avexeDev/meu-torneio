@@ -1226,8 +1226,13 @@ class TournamentManager {
     // Tournament form
     document.getElementById("tournament-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData);
+      const data = {
+        name: document.getElementById("tournament-name").value,
+        logo: document.getElementById("tournament-logo").value,
+        game: document.getElementById("tournament-game").value,
+        startDate: document.getElementById("tournament-start").value,
+        description: document.getElementById("tournament-description").value
+      };
 
       const editId = e.target.dataset.editId;
       if (editId) {
@@ -1244,8 +1249,12 @@ class TournamentManager {
     // Club form
     document.getElementById("club-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData);
+      const data = {
+        name: document.getElementById("club-name").value,
+        country: document.getElementById("club-country").value,
+        logo: document.getElementById("club-logo").value,
+        tournamentId: parseInt(document.getElementById("club-tournament").value) || null
+      };
 
       const editId = e.target.dataset.editId;
       if (editId) {
@@ -1262,8 +1271,20 @@ class TournamentManager {
     // Player form
     document.getElementById("player-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData);
+      const birthdate = document.getElementById("player-birthdate").value;
+      const age = birthdate ? new Date().getFullYear() - new Date(birthdate).getFullYear() : null;
+      
+      const data = {
+        name: document.getElementById("player-name").value,
+        birthdate: birthdate,
+        age: age,
+        position: document.getElementById("player-position").value,
+        nationality: document.getElementById("player-nationality").value,
+        number: parseInt(document.getElementById("player-number").value) || null,
+        height: parseInt(document.getElementById("player-height").value) || null,
+        photo: document.getElementById("player-photo").value,
+        clubId: parseInt(document.getElementById("player-club").value) || null
+      };
 
       const editId = e.target.dataset.editId;
       if (editId) {
@@ -1280,8 +1301,15 @@ class TournamentManager {
     // Coach form
     document.getElementById("coach-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData);
+      const data = {
+        name: document.getElementById("coach-name").value,
+        birthdate: document.getElementById("coach-birthdate").value,
+        nationality: document.getElementById("coach-nationality").value,
+        experience: parseInt(document.getElementById("coach-experience").value) || null,
+        formation: document.getElementById("coach-formation").value,
+        photo: document.getElementById("coach-photo").value,
+        clubId: parseInt(document.getElementById("coach-club").value) || null
+      };
 
       const editId = e.target.dataset.editId;
       if (editId) {
@@ -1298,8 +1326,15 @@ class TournamentManager {
     // Match form
     document.getElementById("match-form").addEventListener("submit", (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData);
+      const data = {
+        homeTeamId: parseInt(document.getElementById("home-team").value),
+        awayTeamId: parseInt(document.getElementById("away-team").value),
+        homeScore: document.getElementById("home-score").value ? parseInt(document.getElementById("home-score").value) : undefined,
+        awayScore: document.getElementById("away-score").value ? parseInt(document.getElementById("away-score").value) : undefined,
+        round: parseInt(document.getElementById("match-round").value),
+        date: document.getElementById("match-date").value,
+        tournamentId: parseInt(document.getElementById("match-tournament").value)
+      };
 
       const editId = e.target.dataset.editId;
       if (editId) {
