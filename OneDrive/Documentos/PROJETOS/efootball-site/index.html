@@ -6,6 +6,7 @@
     <title>TourneyPro - Organizador de Torneios</title>
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/player-profile.css" />
+    <link rel="stylesheet" href="css/club-profile.css" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -670,6 +671,120 @@
 
           <button type="submit">Salvar Partida</button>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal do Perfil do Clube -->
+    <div id="club-profile-modal" class="club-profile-modal">
+      <div class="club-profile-content">
+        <div class="club-header">
+          <button class="club-close" onclick="app.closeClubProfile()">&times;</button>
+          <div class="club-header-content">
+            <img id="club-profile-logo" class="club-logo-large" src="" alt="Clube">
+            <div class="club-basic-info">
+              <h1 id="club-profile-name">Nome do Clube</h1>
+              <div id="club-profile-country" class="club-country-badge">País</div>
+              <div class="club-tournament-info">
+                <span id="club-profile-tournament">Torneio</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="club-body">
+          <div class="club-tabs">
+            <button class="club-tab active" onclick="app.showClubTab('overview')">Visão Geral</button>
+            <button class="club-tab" onclick="app.showClubTab('squad')">Elenco</button>
+            <button class="club-tab" onclick="app.showClubTab('matches')">Partidas</button>
+            <button class="club-tab" onclick="app.showClubTab('statistics')">Estatísticas</button>
+          </div>
+          
+          <!-- Visão Geral -->
+          <div id="club-overview" class="club-tab-content active">
+            <div class="club-overview-grid">
+              <div class="club-stats-card">
+                <h3>Estatísticas Gerais</h3>
+                <div class="club-stats-summary">
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-total-matches">0</div>
+                    <div class="club-stat-label">Jogos</div>
+                  </div>
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-wins">0</div>
+                    <div class="club-stat-label">Vitórias</div>
+                  </div>
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-draws">0</div>
+                    <div class="club-stat-label">Empates</div>
+                  </div>
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-losses">0</div>
+                    <div class="club-stat-label">Derrotas</div>
+                  </div>
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-goals-for">0</div>
+                    <div class="club-stat-label">Gols Pró</div>
+                  </div>
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-goals-against">0</div>
+                    <div class="club-stat-label">Gols Contra</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="club-stats-card">
+                <h3>Informações do Elenco</h3>
+                <div class="club-stats-summary">
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-total-players">0</div>
+                    <div class="club-stat-label">Jogadores</div>
+                  </div>
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-avg-age">0</div>
+                    <div class="club-stat-label">Idade Média</div>
+                  </div>
+                  <div class="club-stat-box">
+                    <div class="club-stat-number" id="club-foreign-players">0</div>
+                    <div class="club-stat-label">Estrangeiros</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Elenco -->
+          <div id="club-squad" class="club-tab-content">
+            <div class="squad-grid" id="club-squad-list">
+              <div class="no-data">Nenhum jogador encontrado</div>
+            </div>
+          </div>
+          
+          <!-- Partidas -->
+          <div id="club-matches" class="club-tab-content">
+            <div class="matches-timeline" id="club-matches-list">
+              <div class="no-data">Nenhuma partida encontrada</div>
+            </div>
+          </div>
+          
+          <!-- Estatísticas -->
+          <div id="club-statistics" class="club-tab-content">
+            <div class="club-statistics-grid">
+              <div class="club-stats-card">
+                <h3>Artilheiros do Clube</h3>
+                <div class="top-scorers-list" id="club-top-scorers">
+                  <div class="no-data">Nenhum artilheiro encontrado</div>
+                </div>
+              </div>
+              
+              <div class="club-stats-card">
+                <h3>Assistências do Clube</h3>
+                <div class="top-assists-list" id="club-top-assists">
+                  <div class="no-data">Nenhuma assistência encontrada</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

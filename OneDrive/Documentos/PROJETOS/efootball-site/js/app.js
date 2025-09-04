@@ -290,7 +290,10 @@ class TournamentManager {
           <h3>${club.name}</h3>
           <p><strong>País:</strong> ${club.country}</p>
           <p><strong>Torneio:</strong> ${tournament?.name || 'Nenhum'}</p>
-          <button class="btn-edit" onclick="app.editClub(${club.id})">Editar</button>
+          <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn-primary" onclick="app.showClubProfile(${club.id})" style="flex: 1;">Ver Clube</button>
+            <button class="btn-edit" onclick="app.editClub(${club.id})">Editar</button>
+          </div>
         </div>
       `;
       })
@@ -1147,6 +1150,232 @@ class TournamentManager {
     document.getElementById("player-profile-modal").style.display = "none";
   }
 
+  // Perfil do Clube
+  showClubProfile(clubId) {
+    const club = this.data.clubs.find(c => c.id === clubId);
+    if (!club) return;
+
+    const tournament = this.data.tournaments.find(t => t.id == club.tournamentId);
+    const clubPlayers = this.getUserData("players").filter(p => p.clubId == club.id);
+    const clubMatches = this.getUserData("matches").filter(m => 
+      (m.homeTeamId == club.id || m.awayTeamId == club.id) && m.status === "finished"
+    );
+
+    // Calcular estatísticas do clube
+    const clubStats = {
+      matches: clubMatches.length,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalsFor: 0,
+      goalsAgainst: 0
+    };
+
+    clubMatches.forEach(match => {
+      const isHome = match.homeTeamId == club.id;
+      const clubScore = isHome ? match.homeScore : match.awayScore;
+      const opponentScore = isHome ? match.awayScore : match.homeScore;
+      
+      clubStats.goalsFor += clubScore;
+      clubStats.goalsAgainst += opponentScore;
+      
+      if (clubScore > opponentScore) {
+        clubStats.wins++;
+      } else if (clubScore === opponentScore) {
+        clubStats.draws++;
+      } else {
+        clubStats.losses++;
+      }
+    });
+
+    // Preencher dados do modal
+    document.getElementById("club-profile-logo").src = club.logo || 'https://via.placeholder.com/120';
+    document.getElementById("club-profile-name").textContent = club.name;
+    document.getElementById("club-profile-country").textContent = club.country;
+    document.getElementById("club-profile-tournament").textContent = tournament?.name || 'Nenhum torneio';
+    
+    // Estatísticas gerais
+    document.getElementById("club-total-matches").textContent = clubStats.matches;
+    document.getElementById("club-wins").textContent = clubStats.wins;
+    document.getElementById("club-draws").textContent = clubStats.draws;
+    document.getElementById("club-losses").textContent = clubStats.losses;
+    document.getElementById("club-goals-for").textContent = clubStats.goalsFor;
+    document.getElementById("club-goals-against").textContent = clubStats.goalsAgainst;
+    
+    // Informações do elenco
+    document.getElementById("club-total-players").textContent = clubPlayers.length;
+    const avgAge = clubPlayers.length > 0 ? 
+      Math.round(clubPlayers.reduce((sum, p) => sum + (p.age || 0), 0) / clubPlayers.length) : 0;
+    document.getElementById("club-avg-age").textContent = avgAge;
+    const foreignPlayers = clubPlayers.filter(p => p.nationality !== club.country).length;
+    document.getElementById("club-foreign-players").textContent = foreignPlayers;
+    
+    this.loadClubSquad(clubPlayers);
+    this.loadClubMatches(clubMatches, club);
+    this.loadClubStatistics(clubPlayers, clubMatches);
+    
+    document.getElementById("club-profile-modal").style.display = "block";
+  }
+
+  loadClubSquad(players) {
+    const container = document.getElementById("club-squad-list");
+    if (players.length === 0) {
+      container.innerHTML = '<div class="no-data">Nenhum jogador encontrado</div>';
+      return;
+    }
+
+    container.innerHTML = players.map(player => `
+      <div class="squad-player-card" onclick="app.showPlayerProfile(${player.id})">
+        <div class="squad-player-header">
+          <img src="${player.photo || 'https://via.placeholder.com/60'}" class="squad-player-photo" alt="${player.name}">
+          <div class="squad-player-info">
+            <h4>${player.name}</h4>
+            <span class="squad-player-position">${player.position}</span>
+          </div>
+        </div>
+        <div class="squad-player-details">
+          <div class="squad-player-detail">
+            <span>Idade</span>
+            <span>${player.age || '-'}</span>
+          </div>
+          <div class="squad-player-detail">
+            <span>Número</span>
+            <span>${player.number || '-'}</span>
+          </div>
+          <div class="squad-player-detail">
+            <span>Nacionalidade</span>
+            <span>${player.nationality || '-'}</span>
+          </div>
+          <div class="squad-player-detail">
+            <span>Altura</span>
+            <span>${player.height ? player.height + ' cm' : '-'}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  loadClubMatches(matches, club) {
+    const container = document.getElementById("club-matches-list");
+    if (matches.length === 0) {
+      container.innerHTML = '<div class="no-data">Nenhuma partida encontrada</div>';
+      return;
+    }
+
+    container.innerHTML = matches.map(match => {
+      const homeTeam = this.data.clubs.find(c => c.id == match.homeTeamId);
+      const awayTeam = this.data.clubs.find(c => c.id == match.awayTeamId);
+      const isHome = match.homeTeamId == club.id;
+      const clubScore = isHome ? match.homeScore : match.awayScore;
+      const opponentScore = isHome ? match.awayScore : match.homeScore;
+      
+      let resultClass = 'result-draw';
+      let resultText = 'E';
+      if (clubScore > opponentScore) {
+        resultClass = 'result-win';
+        resultText = 'V';
+      } else if (clubScore < opponentScore) {
+        resultClass = 'result-loss';
+        resultText = 'D';
+      }
+      
+      return `
+        <div class="club-match-item">
+          <div class="club-match-date">${new Date(match.date).toLocaleDateString('pt-BR')}</div>
+          <div class="club-match-teams">
+            <div class="club-match-team home">
+              <span class="club-match-team-name">${homeTeam?.name}</span>
+              <img src="${homeTeam?.logo || 'https://via.placeholder.com/30'}" class="club-match-team-logo" alt="${homeTeam?.name}">
+            </div>
+            <div class="club-match-score">${match.homeScore} - ${match.awayScore}</div>
+            <div class="club-match-team">
+              <img src="${awayTeam?.logo || 'https://via.placeholder.com/30'}" class="club-match-team-logo" alt="${awayTeam?.name}">
+              <span class="club-match-team-name">${awayTeam?.name}</span>
+            </div>
+          </div>
+          <div class="club-match-result ${resultClass}">${resultText}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  loadClubStatistics(players, matches) {
+    // Artilheiros do clube
+    const scorers = {};
+    const assists = {};
+    
+    matches.forEach(match => {
+      if (match.events) {
+        match.events.forEach(event => {
+          const player = players.find(p => p.id == event.playerId || p.name === event.player);
+          if (player) {
+            if (event.type === "Gol") {
+              scorers[player.id] = scorers[player.id] || { player, goals: 0 };
+              scorers[player.id].goals++;
+            } else if (event.type === "Assistência") {
+              assists[player.id] = assists[player.id] || { player, assists: 0 };
+              assists[player.id].assists++;
+            }
+          }
+        });
+      }
+    });
+    
+    // Top scorers
+    const topScorers = Object.values(scorers).sort((a, b) => b.goals - a.goals).slice(0, 5);
+    const scorersContainer = document.getElementById("club-top-scorers");
+    if (topScorers.length === 0) {
+      scorersContainer.innerHTML = '<div class="no-data">Nenhum artilheiro encontrado</div>';
+    } else {
+      scorersContainer.innerHTML = topScorers.map(scorer => `
+        <div class="top-player-item" onclick="app.showPlayerProfile(${scorer.player.id})">
+          <div class="top-player-info">
+            <img src="${scorer.player.photo || 'https://via.placeholder.com/40'}" class="top-player-photo" alt="${scorer.player.name}">
+            <div>
+              <div class="top-player-name">${scorer.player.name}</div>
+              <div class="top-player-position">${scorer.player.position}</div>
+            </div>
+          </div>
+          <div class="top-player-stat">${scorer.goals}</div>
+        </div>
+      `).join('');
+    }
+    
+    // Top assists
+    const topAssists = Object.values(assists).sort((a, b) => b.assists - a.assists).slice(0, 5);
+    const assistsContainer = document.getElementById("club-top-assists");
+    if (topAssists.length === 0) {
+      assistsContainer.innerHTML = '<div class="no-data">Nenhuma assistência encontrada</div>';
+    } else {
+      assistsContainer.innerHTML = topAssists.map(assist => `
+        <div class="top-player-item" onclick="app.showPlayerProfile(${assist.player.id})">
+          <div class="top-player-info">
+            <img src="${assist.player.photo || 'https://via.placeholder.com/40'}" class="top-player-photo" alt="${assist.player.name}">
+            <div>
+              <div class="top-player-name">${assist.player.name}</div>
+              <div class="top-player-position">${assist.player.position}</div>
+            </div>
+          </div>
+          <div class="top-player-stat">${assist.assists}</div>
+        </div>
+      `).join('');
+    }
+  }
+
+  showClubTab(tabName) {
+    // Remover classe active de todas as abas
+    document.querySelectorAll('.club-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.club-tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Ativar aba selecionada
+    event.target.classList.add('active');
+    document.getElementById(`club-${tabName}`).classList.add('active');
+  }
+
+  closeClubProfile() {
+    document.getElementById("club-profile-modal").style.display = "none";
+  }
+
   // Theme
   toggleTheme() {
     const currentTheme = document.documentElement.getAttribute("data-theme");
@@ -1359,6 +1588,9 @@ class TournamentManager {
       }
       if (e.target.classList.contains("player-profile-modal")) {
         this.closePlayerProfile();
+      }
+      if (e.target.classList.contains("club-profile-modal")) {
+        this.closeClubProfile();
       }
     });
 
