@@ -31,44 +31,36 @@ class TournamentManager {
     }
   }
 
-  async login(username, password) {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: username,
-        password: password
-      });
-      
-      if (error) throw error;
-      
-      this.currentUser = {
-        id: data.user.id,
-        username: data.user.email,
-        email: data.user.email
-      };
-      
-      localStorage.setItem("currentUser", JSON.stringify(this.currentUser));
-      await this.loadAllData();
+  login(username, password) {
+    const user = this.data.users.find(
+      (u) => u.username === username && u.password === password
+    );
+
+    if (user) {
+      this.currentUser = user;
+      localStorage.setItem("currentUser", JSON.stringify(user));
       this.showDashboard();
       return true;
-    } catch (error) {
-      console.error('Erro no login:', error);
-      return false;
     }
+    return false;
   }
 
-  async register(username, password) {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: username,
-        password: password
-      });
-      
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error('Erro no registro:', error);
+  register(username, password) {
+    const existingUser = this.data.users.find((u) => u.username === username);
+    if (existingUser) {
       return false;
     }
+
+    const newUser = {
+      id: Date.now(),
+      username,
+      password,
+      createdAt: new Date().toISOString(),
+    };
+
+    this.data.users.push(newUser);
+    localStorage.setItem("users", JSON.stringify(this.data.users));
+    return true;
   }
 
   logout() {
@@ -109,46 +101,8 @@ class TournamentManager {
   }
 
   // Dados
-  async saveData(type, item = null) {
-    try {
-      if (item) {
-        const { data, error } = await supabase
-          .from(type)
-          .upsert({...item, user_id: this.currentUser.id})
-          .select();
-        if (error) throw error;
-        return data;
-      }
-    } catch (error) {
-      console.error('Erro ao salvar:', error);
-      localStorage.setItem(type, JSON.stringify(this.data[type]));
-    }
-  }
-
-  async loadData(type) {
-    try {
-      const { data, error } = await supabase
-        .from(type)
-        .select('*')
-        .eq('user_id', this.currentUser?.id);
-      
-      if (error) throw error;
-      this.data[type] = data || [];
-    } catch (error) {
-      console.error('Erro ao carregar:', error);
-      this.data[type] = JSON.parse(localStorage.getItem(type) || '[]');
-    }
-  }
-
-  async loadAllData() {
-    await Promise.all([
-      this.loadData('tournaments'),
-      this.loadData('clubs'),
-      this.loadData('players'),
-      this.loadData('coaches'),
-      this.loadData('matches'),
-      this.loadData('rounds')
-    ]);
+  saveData(type) {
+    localStorage.setItem(type, JSON.stringify(this.data[type]));
   }
 
   getUserData(type) {

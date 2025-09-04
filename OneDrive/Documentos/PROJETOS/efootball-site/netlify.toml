@@ -1,7 +1,0 @@
-[build]
-  publish = "OneDrive/Documentos/PROJETOS/efootball-site"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
